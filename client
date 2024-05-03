@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
-import csv
+import pickle
 
 class EmployeeSystemGUI:
     def __init__(self, master):
@@ -66,13 +66,12 @@ class EmployeeSystemGUI:
             messagebox.showerror("Error", "Client not found")
 
     def retrieve_client_data(self, client_id):
-        # Retrieve client data from CSV file based on Client ID
+        # Retrieve client data from binary file based on Client ID
         try:
-            with open("client_data.csv", newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['Client ID'] == client_id:
-                        return row
+            with open("client_data.pkl", "rb") as file:
+                client_data = pickle.load(file)
+                if client_id in client_data:
+                    return client_data[client_id]
         except FileNotFoundError:
             return None
         return None
@@ -103,18 +102,31 @@ class EmployeeSystemGUI:
         self.submit_button.pack()
 
     def save_client_data(self):
-        # Generate a random Client ID and save client data to CSV file
+        # Generate a random Client ID and save client data to binary file
         client_id = ''.join(random.choices('0123456789', k=5))
         name = self.name_entry.get()
         address = self.address_entry.get()
         contact = self.contact_entry.get()
         budget = self.budget_entry.get()
 
+        # Load existing data or create new dictionary
+        try:
+            with open("client_data.pkl", "rb") as file:
+                client_data = pickle.load(file)
+        except FileNotFoundError:
+            client_data = {}
+
+        # Add new client data
+        client_data[client_id] = {
+            'Name': name,
+            'Address': address,
+            'Contact': contact,
+            'Budget': budget
+        }
+
         # Save client data to file
-        with open("client_data.csv", "a", newline='') as csvfile:
-            fieldnames = ['Client ID', 'Name', 'Address', 'Contact', 'Budget']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({'Client ID': client_id, 'Name': name, 'Address': address, 'Contact': contact, 'Budget': budget})
+        with open("client_data.pkl", "wb") as file:
+            pickle.dump(client_data, file)
 
         # Display success message with generated Client ID
         messagebox.showinfo("Success", f"Client registered successfully. Your Client ID is: {client_id}")
