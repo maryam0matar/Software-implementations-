@@ -61,7 +61,10 @@ class EmployeeSystemGUI:
         venue_id = self.venue_id_entry.get()
         venue_data = self.retrieve_venue_data(venue_id)
         if venue_data:
-            messagebox.showinfo("Venue Details", f"Name: {venue_data['Name']}\nAddress: {venue_data['Address']}\nContact: {venue_data['Contact']}\nMinimum Guests: {venue_data['Minimum Guests']}\nMaximum Guests: {venue_data['Maximum Guests']}")
+            details = ""
+            for key, value in venue_data.items():
+                details += f"{key}: {value}\n"
+            messagebox.showinfo("Venue Details", details)
         else:
             messagebox.showerror("Error", "Venue not found")
 
@@ -135,8 +138,9 @@ class EmployeeSystemGUI:
         with open("venue_data.pkl", "wb") as file:
             pickle.dump(venue_data, file)
 
-        # Display success message with generated Venue ID
-        messagebox.showinfo("Success", f"Venue registered successfully. Your Venue ID is: {venue_id}")
+        # Display all venue information
+        details = f"Venue registered successfully.\nVenue ID: {venue_id}\nName: {name}\nAddress: {address}\nContact: {contact}\nMinimum Guests: {min_guests}\nMaximum Guests: {max_guests}"
+        messagebox.showinfo("Success", details)
 
         # Clear current widgets and go back to the start page
         self.clear_current_widgets()
@@ -150,4 +154,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
