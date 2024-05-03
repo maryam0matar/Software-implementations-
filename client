@@ -61,7 +61,10 @@ class EmployeeSystemGUI:
         client_id = self.client_id_entry.get()
         client_data = self.retrieve_client_data(client_id)
         if client_data:
-            messagebox.showinfo("Client Details", f"Name: {client_data['Name']}\nAddress: {client_data['Address']}\nContact: {client_data['Contact']}\nBudget: {client_data['Budget']}")
+            details = ""
+            for key, value in client_data.items():
+                details += f"{key}: {value}\n"
+            messagebox.showinfo("Client Details", details)
         else:
             messagebox.showerror("Error", "Client not found")
 
@@ -128,8 +131,9 @@ class EmployeeSystemGUI:
         with open("client_data.pkl", "wb") as file:
             pickle.dump(client_data, file)
 
-        # Display success message with generated Client ID
-        messagebox.showinfo("Success", f"Client registered successfully. Your Client ID is: {client_id}")
+        # Display all client information
+        details = f"Client registered successfully.\nClient ID: {client_id}\nName: {name}\nAddress: {address}\nContact: {contact}\nBudget: {budget}"
+        messagebox.showinfo("Success", details)
 
         # Clear current widgets and go back to the start page
         self.clear_current_widgets()
@@ -143,3 +147,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
