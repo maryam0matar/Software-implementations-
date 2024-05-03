@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
-import csv
+import pickle
 
 class EmployeeSystemGUI:
     def __init__(self, master):
@@ -66,13 +66,12 @@ class EmployeeSystemGUI:
             messagebox.showerror("Error", "Guest not found")
 
     def retrieve_guest_data(self, guest_id):
-        # Retrieve guest data from CSV file based on Guest ID
+        # Retrieve guest data from binary file based on Guest ID
         try:
-            with open("guest_data.csv", newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['Guest ID'] == guest_id:
-                        return row
+            with open("guest_data.pkl", "rb") as file:
+                guest_data = pickle.load(file)
+                if guest_id in guest_data:
+                    return guest_data[guest_id]
         except FileNotFoundError:
             return None
         return None
@@ -98,17 +97,29 @@ class EmployeeSystemGUI:
         self.submit_button.pack()
 
     def save_guest_data(self):
-        # Generate a random Guest ID and save guest data to CSV file
+        # Generate a random Guest ID and save guest data to binary file
         guest_id = ''.join(random.choices('0123456789', k=5))
         name = self.name_entry.get()
         address = self.address_entry.get()
         contact = self.contact_entry.get()
 
+        # Load existing data or create new dictionary
+        try:
+            with open("guest_data.pkl", "rb") as file:
+                guest_data = pickle.load(file)
+        except FileNotFoundError:
+            guest_data = {}
+
+        # Add new guest data
+        guest_data[guest_id] = {
+            'Name': name,
+            'Address': address,
+            'Contact': contact
+        }
+
         # Save guest data to file
-        with open("guest_data.csv", "a", newline='') as csvfile:
-            fieldnames = ['Guest ID', 'Name', 'Address', 'Contact']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({'Guest ID': guest_id, 'Name': name, 'Address': address, 'Contact': contact})
+        with open("guest_data.pkl", "wb") as file:
+            pickle.dump(guest_data, file)
 
         # Display success message with generated Guest ID
         messagebox.showinfo("Success", f"Guest registered successfully. Your Guest ID is: {guest_id}")
@@ -125,3 +136,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
