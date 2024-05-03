@@ -1,0 +1,145 @@
+import tkinter as tk
+from tkinter import messagebox
+import random
+import csv
+
+class EmployeeSystemGUI:
+    def __init__(self, master):
+        self.master = master
+        self.master.title("Employee System")
+        self.create_start_gui()
+
+    def create_start_gui(self):
+        # Create the initial GUI with a button to start the service
+        self.start_button = tk.Button(self.master, text="Start Your Service", command=self.show_supplier_page)
+        self.start_button.pack()
+
+    def show_supplier_page(self):
+        # Clear the current widgets and show the supplier page
+        self.clear_current_widgets()
+        self.supplier_button = tk.Button(self.master, text="Caterers", command=self.show_caterer_management_page)
+        self.supplier_button.pack()
+
+    def show_caterer_management_page(self):
+        # Clear the current widgets and prompt the user to choose if they have an existing Caterer ID
+        self.clear_current_widgets()
+        messagebox.showinfo("Caterer Management", "Do you have an existing Caterer ID?")
+        self.existing_caterer_response = tk.StringVar()
+        self.existing_caterer_response.set("No")
+        self.existing_caterer_radio_yes = tk.Radiobutton(self.master, text="Yes", variable=self.existing_caterer_response, value="Yes")
+        self.existing_caterer_radio_no = tk.Radiobutton(self.master, text="No", variable=self.existing_caterer_response, value="No")
+        self.existing_caterer_radio_yes.pack()
+        self.existing_caterer_radio_no.pack()
+        self.confirm_existing_caterer_button = tk.Button(self.master, text="Confirm", command=self.confirm_existing_caterer)
+        self.confirm_existing_caterer_button.pack()
+
+    def confirm_existing_caterer(self):
+        # If the user has an existing Caterer ID, show the form to enter it. Otherwise, show the form to register a new caterer.
+        if self.existing_caterer_response.get() == "Yes":
+            self.clear_current_widgets()
+            self.show_existing_caterer_form()
+        else:
+            self.clear_current_widgets()
+            self.show_new_caterer_form()
+
+    def clear_current_widgets(self):
+        # Helper function to clear all current widgets on the GUI
+        for widget in self.master.winfo_children():
+            widget.destroy()
+
+    def show_existing_caterer_form(self):
+        # Display form to enter existing Caterer ID
+        self.caterer_id_label = tk.Label(self.master, text="Enter Caterer ID:")
+        self.caterer_id_label.pack()
+        self.caterer_id_entry = tk.Entry(self.master)
+        self.caterer_id_entry.pack()
+        self.check_caterer_button = tk.Button(self.master, text="Check Caterer", command=self.check_caterer)
+        self.check_caterer_button.pack()
+
+    def check_caterer(self):
+        # Check if the entered Caterer ID exists and display the caterer details if found
+        caterer_id = self.caterer_id_entry.get()
+        caterer_data = self.retrieve_caterer_data(caterer_id)
+        if caterer_data:
+            messagebox.showinfo("Caterer Details", f"Caterer ID: {caterer_data['Caterer ID']}\nName: {caterer_data['Name']}\nAddress: {caterer_data['Address']}\nContact: {caterer_data['Contact']}\nMenu: {caterer_data['Menu']}\nMinimum Guests: {caterer_data['Minimum Guests']}\nMaximum Guests: {caterer_data['Maximum Guests']}")
+        else:
+            messagebox.showerror("Error", "Caterer not found")
+
+    def retrieve_caterer_data(self, caterer_id):
+        # Retrieve caterer data from CSV file based on Caterer ID
+        try:
+            with open("caterer_data.csv", newline='') as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    if row['Caterer ID'] == caterer_id:
+                        return row
+        except FileNotFoundError:
+            return None
+        return None
+
+    def show_new_caterer_form(self):
+        # Display form to register a new caterer
+        self.name_label = tk.Label(self.master, text="Name:")
+        self.name_label.pack()
+        self.name_entry = tk.Entry(self.master)
+        self.name_entry.pack()
+
+        self.address_label = tk.Label(self.master, text="Address:")
+        self.address_label.pack()
+        self.address_entry = tk.Entry(self.master)
+        self.address_entry.pack()
+
+        self.contact_label = tk.Label(self.master, text="Contact:")
+        self.contact_label.pack()
+        self.contact_entry = tk.Entry(self.master)
+        self.contact_entry.pack()
+
+        self.menu_label = tk.Label(self.master, text="Menu:")
+        self.menu_label.pack()
+        self.menu_entry = tk.Entry(self.master)
+        self.menu_entry.pack()
+
+        self.min_guests_label = tk.Label(self.master, text="Minimum Guests:")
+        self.min_guests_label.pack()
+        self.min_guests_entry = tk.Entry(self.master)
+        self.min_guests_entry.pack()
+
+        self.max_guests_label = tk.Label(self.master, text="Maximum Guests:")
+        self.max_guests_label.pack()
+        self.max_guests_entry = tk.Entry(self.master)
+        self.max_guests_entry.pack()
+
+        self.submit_button = tk.Button(self.master, text="Submit", command=self.save_caterer_data)
+        self.submit_button.pack()
+
+    def save_caterer_data(self):
+        # Generate a random Caterer ID and save caterer data to CSV file
+        caterer_id = ''.join(random.choices('0123456789', k=5))
+        name = self.name_entry.get()
+        address = self.address_entry.get()
+        contact = self.contact_entry.get()
+        menu = self.menu_entry.get()
+        min_guests = self.min_guests_entry.get()
+        max_guests = self.max_guests_entry.get()
+
+        # Save caterer data to file
+        with open("caterer_data.csv", "a", newline='') as csvfile:
+            fieldnames = ['Caterer ID', 'Name', 'Address', 'Contact', 'Menu', 'Minimum Guests', 'Maximum Guests']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writerow({'Caterer ID': caterer_id, 'Name': name, 'Address': address, 'Contact': contact, 'Menu': menu, 'Minimum Guests': min_guests, 'Maximum Guests': max_guests})
+
+        # Display success message with generated Caterer ID and details
+        messagebox.showinfo("Success", f"Caterer registered successfully. Your Caterer ID is: {caterer_id}\n\nCaterer Details:\nName: {name}\nAddress: {address}\nContact: {contact}\nMenu: {menu}\nMinimum Guests: {min_guests}\nMaximum Guests: {max_guests}")
+
+        # Clear current widgets and go back to the start page
+        self.clear_current_widgets()
+        self.create_start_gui()
+
+def main():
+    # Initialize Tkinter and start the application
+    root = tk.Tk()
+    employee_system_gui = EmployeeSystemGUI(root)
+    root.mainloop()
+
+if __name__ == "__main__":
+    main()
