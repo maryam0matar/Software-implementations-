@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
-import csv
+import pickle
 
 class EmployeeSystemGUI:
     def __init__(self, master):
@@ -66,13 +66,12 @@ class EmployeeSystemGUI:
             messagebox.showerror("Error", "Caterer not found")
 
     def retrieve_caterer_data(self, caterer_id):
-        # Retrieve caterer data from CSV file based on Caterer ID
+        # Retrieve caterer data from binary file based on Caterer ID
         try:
-            with open("caterer_data.csv", newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['Caterer ID'] == caterer_id:
-                        return row
+            with open("caterer_data.pkl", "rb") as file:
+                caterer_data = pickle.load(file)
+                if caterer_id in caterer_data:
+                    return caterer_data[caterer_id]
         except FileNotFoundError:
             return None
         return None
@@ -113,7 +112,7 @@ class EmployeeSystemGUI:
         self.submit_button.pack()
 
     def save_caterer_data(self):
-        # Generate a random Caterer ID and save caterer data to CSV file
+        # Generate a random Caterer ID and save caterer data to binary file
         caterer_id = ''.join(random.choices('0123456789', k=5))
         name = self.name_entry.get()
         address = self.address_entry.get()
@@ -122,11 +121,27 @@ class EmployeeSystemGUI:
         min_guests = self.min_guests_entry.get()
         max_guests = self.max_guests_entry.get()
 
+        # Load existing data or create new dictionary
+        try:
+            with open("caterer_data.pkl", "rb") as file:
+                caterer_data = pickle.load(file)
+        except FileNotFoundError:
+            caterer_data = {}
+
+        # Add new caterer data
+        caterer_data[caterer_id] = {
+            'Caterer ID': caterer_id,
+            'Name': name,
+            'Address': address,
+            'Contact': contact,
+            'Menu': menu,
+            'Minimum Guests': min_guests,
+            'Maximum Guests': max_guests
+        }
+
         # Save caterer data to file
-        with open("caterer_data.csv", "a", newline='') as csvfile:
-            fieldnames = ['Caterer ID', 'Name', 'Address', 'Contact', 'Menu', 'Minimum Guests', 'Maximum Guests']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({'Caterer ID': caterer_id, 'Name': name, 'Address': address, 'Contact': contact, 'Menu': menu, 'Minimum Guests': min_guests, 'Maximum Guests': max_guests})
+        with open("caterer_data.pkl", "wb") as file:
+            pickle.dump(caterer_data, file)
 
         # Display success message with generated Caterer ID and details
         messagebox.showinfo("Success", f"Caterer registered successfully. Your Caterer ID is: {caterer_id}\n\nCaterer Details:\nName: {name}\nAddress: {address}\nContact: {contact}\nMenu: {menu}\nMinimum Guests: {min_guests}\nMaximum Guests: {max_guests}")
@@ -143,3 +158,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
