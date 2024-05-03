@@ -1,7 +1,18 @@
 import tkinter as tk
 from tkinter import messagebox
 import random
-import csv
+import pickle
+
+class Event:
+    def __init__(self, event_id, event_type, time_duration, venue, client_id, guest_list, outsource, total_price):
+        self.event_id = event_id
+        self.event_type = event_type
+        self.time_duration = time_duration
+        self.venue = venue
+        self.client_id = client_id
+        self.guest_list = guest_list
+        self.outsource = outsource
+        self.total_price = total_price
 
 class EmployeeSystemGUI:
     def __init__(self, master):
@@ -10,18 +21,15 @@ class EmployeeSystemGUI:
         self.create_start_gui()
 
     def create_start_gui(self):
-        # Create the initial GUI with a button to start the service
         self.start_button = tk.Button(self.master, text="Start Your Service", command=self.show_events_page)
         self.start_button.pack()
 
     def show_events_page(self):
-        # Clear the current widgets and show the events page
         self.clear_current_widgets()
         self.events_button = tk.Button(self.master, text="Events", command=self.show_event_management_page)
         self.events_button.pack()
 
     def show_event_management_page(self):
-        # Clear the current widgets and prompt the user to choose if they have an existing Event ID
         self.clear_current_widgets()
         messagebox.showinfo("Event Management", "Do you have an existing Event ID?")
         self.existing_event_response = tk.StringVar()
@@ -34,7 +42,6 @@ class EmployeeSystemGUI:
         self.confirm_existing_event_button.pack()
 
     def confirm_existing_event(self):
-        # If the user has an existing Event ID, show the form to enter it. Otherwise, show the form to create a new event.
         if self.existing_event_response.get() == "Yes":
             self.clear_current_widgets()
             self.show_existing_event_form()
@@ -43,12 +50,10 @@ class EmployeeSystemGUI:
             self.show_new_event_form()
 
     def clear_current_widgets(self):
-        # Helper function to clear all current widgets on the GUI
         for widget in self.master.winfo_children():
             widget.destroy()
 
     def show_existing_event_form(self):
-        # Display form to enter existing Event ID
         self.event_id_label = tk.Label(self.master, text="Enter Event ID:")
         self.event_id_label.pack()
         self.event_id_entry = tk.Entry(self.master)
@@ -57,61 +62,50 @@ class EmployeeSystemGUI:
         self.check_event_button.pack()
 
     def check_event(self):
-        # Check if the entered Event ID exists and display the invoice if found
         event_id = self.event_id_entry.get()
-        event_data = self.retrieve_event_data(event_id)
-        if event_data:
-            invoice_text = f"Event ID: {event_data['Event ID']}\n"
-            invoice_text += f"Event Type: {event_data['Event Type']}\n"
-            invoice_text += f"Time Duration: {event_data['Time Duration']} hours\n"
-            invoice_text += f"Venue: {event_data['Venue']}\n"
-            invoice_text += f"Client ID: {event_data['Client ID']}\n"
-            invoice_text += f"Guest List: {event_data['Guest List']}\n"
-            invoice_text += f"Outsource: {event_data['Outsource']}\n"
-            invoice_text += f"Total Price: ${event_data['Total Price']}\n"
-            messagebox.showinfo("Invoice", invoice_text)
+        event = self.retrieve_event_data(event_id)
+        if event:
+            self.display_invoice(event)
         else:
             messagebox.showerror("Error", "Event not found")
 
     def retrieve_event_data(self, event_id):
-        # Retrieve event data from CSV file based on Event ID
         try:
-            with open("event_data.csv", newline='') as csvfile:
-                reader = csv.DictReader(csvfile)
-                for row in reader:
-                    if row['Event ID'] == event_id:
-                        return row
+            with open("event_data.pkl", "rb") as file:
+                event_list = pickle.load(file)
+                for event in event_list:
+                    if event.event_id == event_id:
+                        return event
         except FileNotFoundError:
             return None
         return None
 
     def show_new_event_form(self):
-        # Display form to create a new event
         self.event_type_label = tk.Label(self.master, text="Event Type:")
         self.event_type_label.pack()
         self.event_type_var = tk.StringVar(self.master)
-        self.event_type_var.set("Weddings")  # Default value
+        self.event_type_var.set("Weddings")  
         self.event_type_dropdown = tk.OptionMenu(self.master, self.event_type_var, "Weddings", "Birthdays", "Themed Parties", "Graduations")
         self.event_type_dropdown.pack()
 
         self.time_duration_label = tk.Label(self.master, text="Time Duration (hours):")
         self.time_duration_label.pack()
         self.time_duration_var = tk.StringVar(self.master)
-        self.time_duration_var.set("1")  # Default value
+        self.time_duration_var.set("1") 
         self.time_duration_dropdown = tk.OptionMenu(self.master, self.time_duration_var, "1", "2", "3", "4", "5", "6", "7", "8", "9", "10")
         self.time_duration_dropdown.pack()
 
         self.venue_label = tk.Label(self.master, text="Venue Address:")
         self.venue_label.pack()
         self.venue_var = tk.StringVar(self.master)
-        self.venue_var.set("Venue 1")  # Default value
+        self.venue_var.set("Venue 1")  
         self.venue_dropdown = tk.OptionMenu(self.master, self.venue_var, "Venue 1", "Venue 2", "Venue 3", "Venue 4", "Venue 5")
         self.venue_dropdown.pack()
 
         self.client_id_label = tk.Label(self.master, text="Client ID:")
         self.client_id_label.pack()
         self.client_id_var = tk.StringVar(self.master)
-        self.client_id_var.set("Client 1")  # Default value
+        self.client_id_var.set("Client 1")  
         self.client_id_dropdown = tk.OptionMenu(self.master, self.client_id_var, "Client 1", "Client 2", "Client 3", "Client 4", "Client 5")
         self.client_id_dropdown.pack()
 
@@ -123,7 +117,7 @@ class EmployeeSystemGUI:
         self.outsource_label = tk.Label(self.master, text="Extra Outsource:")
         self.outsource_label.pack()
         self.outsource_var = tk.StringVar(self.master)
-        self.outsource_var.set("Catering Company")  # Default value
+        self.outsource_var.set("Catering Company")  
         self.outsource_dropdown = tk.OptionMenu(self.master, self.outsource_var, "Catering Company", "Cleaning Company", "Decorations Company", "Entertainment Company", "Furniture Supply Company")
         self.outsource_dropdown.pack()
 
@@ -131,7 +125,6 @@ class EmployeeSystemGUI:
         self.submit_button.pack()
 
     def save_event_data(self):
-        # Generate a random Event ID and save event data to CSV file
         event_id = ''.join(random.choices('0123456789', k=5))
         event_type = self.event_type_var.get()
         time_duration = int(self.time_duration_var.get())
@@ -140,35 +133,42 @@ class EmployeeSystemGUI:
         guest_list = self.guest_list_entry.get().split(", ") if self.guest_list_entry.get() else []
         outsource = self.outsource_var.get()
 
-        # Calculate event expenses
-        # For demonstration purposes, let's assume a fixed price per hour for the event
-        event_price_per_hour = 100  # $100 per hour
+        event_price_per_hour = 100  
         total_price = event_price_per_hour * time_duration
 
-        # Save event data to file
-        with open("event_data.csv", "a", newline='') as csvfile:
-            fieldnames = ['Event ID', 'Event Type', 'Time Duration', 'Venue', 'Client ID', 'Guest List', 'Outsource', 'Total Price']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerow({'Event ID': event_id, 'Event Type': event_type, 'Time Duration': time_duration, 'Venue': venue, 'Client ID': client_id, 'Guest List': ', '.join(guest_list), 'Outsource': outsource, 'Total Price': total_price})
+        new_event = Event(event_id, event_type, time_duration, venue, client_id, guest_list, outsource, total_price)
 
-        # Display invoice
-        invoice_text = f"Event ID: {event_id}\n"
-        invoice_text += f"Event Type: {event_type}\n"
-        invoice_text += f"Time Duration: {time_duration} hours\n"
-        invoice_text += f"Venue: {venue}\n"
-        invoice_text += f"Client ID: {client_id}\n"
-        invoice_text += f"Guest List: {', '.join(guest_list)}\n"
-        invoice_text += f"Outsource: {outsource}\n"
-        invoice_text += f"Total Price: ${total_price}\n"
+        try:
+            with open("event_data.pkl", "rb") as file:
+                event_list = pickle.load(file)
+        except FileNotFoundError:
+            event_list = []
+
+        event_list.append(new_event)
+
+        with open("event_data.pkl", "wb") as file:
+            pickle.dump(event_list, file)
+
+        self.display_invoice(new_event)
+        self.clear_current_widgets()
+        self.create_start_gui()
+
+    def display_invoice(self, event):
+        invoice_text = f"Event ID: {event.event_id}\n"
+        invoice_text += f"Event Type: {event.event_type}\n"
+        invoice_text += f"Time Duration: {event.time_duration} hours\n"
+        invoice_text += f"Venue: {event.venue}\n"
+        invoice_text += f"Client ID: {event.client_id}\n"
+        invoice_text += f"Guest List: {', '.join(event.guest_list)}\n"
+        invoice_text += f"Outsource: {event.outsource}\n"
+        invoice_text += f"Total Price: ${event.total_price}\n"
 
         messagebox.showinfo("Invoice", invoice_text)
 
-        # Clear current widgets and go back to the start page
         self.clear_current_widgets()
         self.create_start_gui()
 
 def main():
-    # Initialize Tkinter and start the application
     root = tk.Tk()
     employee_system_gui = EmployeeSystemGUI(root)
     root.mainloop()
