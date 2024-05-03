@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-import csv
+import pickle
 
 # Employee class to represent employee details
 class Employee:
@@ -27,21 +27,15 @@ class EmployeeSystemGUI:
     # Load existing employee data from file
     def load_employee_data(self):
         try:
-            with open("employee_data.csv", mode='r') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    self.employee_list.append(Employee(**row))
+            with open("employee_data.pkl", "rb") as file:
+                self.employee_list = pickle.load(file)
         except FileNotFoundError:
             pass  # If file doesn't exist, create an empty list
 
     # Save employee data to file
     def save_employee_data(self):
-        with open("employee_data.csv", mode='w', newline='') as file:
-            fieldnames = ['employee_id', 'name', 'department', 'job_title', 'basic_salary', 'age', 'dob', 'passport_details']
-            writer = csv.DictWriter(file, fieldnames=fieldnames)
-            writer.writeheader()
-            for employee in self.employee_list:
-                writer.writerow(vars(employee))
+        with open("employee_data.pkl", "wb") as file:
+            pickle.dump(self.employee_list, file)
 
     # Create the initial start GUI with a button
     def create_start_gui(self):
@@ -199,3 +193,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
